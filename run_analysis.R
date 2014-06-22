@@ -29,32 +29,42 @@ if (!file.exists(testDir) || !file.exists(trainDir)){
 	activityClasses <- read.table("activity_labels.txt", sep=" ")
 
 	# reads line by line of the subject, activity and features files and writes to a tidy csv output
-	conSubject <- file("test/subject_test.txt", open = "r")
-	conActivity <- file("test/y_test.txt", open = "r")
-	conFeatures <- file("test/X_test.txt", open = "r")
+	readData <- function (subjectFile, activityFile, featuresFile){
 
-	while (TRUE) {
-		subjectLine <- readLines(conSubject, n = 1, warn = FALSE)
-		activityLine <- readLines(conActivity, n = 1, warn = FALSE)
-		featuresLine <- readLines(conFeatures, n = 1, warn = FALSE)
+		conSubject <- file(subjectFile, open = "r")
+		conActivity <- file(activityFile, open = "r")
+		conFeatures <- file(featuresFile, open = "r")
 
-		if (length(subjectLine) > 0){
-			# replaces the activity number by the activity class label
-			activityClass <- activityClasses$V2[as.numeric(activityLine)]
+		while (TRUE) {
+			subjectLine <- readLines(conSubject, n = 1, warn = FALSE)
+			activityLine <- readLines(conActivity, n = 1, warn = FALSE)
+			featuresLine <- readLines(conFeatures, n = 1, warn = FALSE)
 
-			# select only the mean and std features to be written in the tidy csv
-			splittedFeatures <- as.numeric(splitBySize(featuresLine, 16))
-			selectedFeatures <- splittedFeatures[isMeanFeature | isStdFeature]
+			if (length(subjectLine) > 0){
+				# replaces the activity number by the activity class label
+				activityClass <- activityClasses$V2[as.numeric(activityLine)]
 
-			data <- matrix(c(subjectLine, as.character(activityClass), selectedFeatures), nrow = 1, ncol = numCols)
-			write.table(data, outputFile, sep = ",", append = TRUE, row.names = FALSE, col.names = FALSE)
-		}else{
-			break
-		}
-	} 
+				# select only the mean and std features to be written in the tidy csv
+				splittedFeatures <- as.numeric(splitBySize(featuresLine, 16))
+				selectedFeatures <- splittedFeatures[isMeanFeature | isStdFeature]
 
-	close(conSubject)
-	close(conActivity)
-	close(conFeatures)
+				data <- matrix(c(subjectLine, as.character(activityClass), selectedFeatures), nrow = 1, ncol = numCols)
+				write.table(data, outputFile, sep = ",", append = TRUE, row.names = FALSE, col.names = FALSE)
+			}else{
+				break
+			}
+		} 
+
+		close(conSubject)
+		close(conActivity)
+		close(conFeatures)
+	}
+
+	# reads from the test set and writes to the tidy csv output
+	readData("test/subject_test.txt", "test/y_test.txt", "test/X_test.txt")
+
+	# reads from the train set and writes to the tidy csv output
+	readData("train/subject_train.txt", "train/y_train.txt", "train/X_train.txt")
 }
+
 
