@@ -29,7 +29,7 @@ if (!file.exists(testDir) || !file.exists(trainDir)){
 	activityClasses <- read.table("activity_labels.txt", sep=" ")
 
 	# reads line by line of the subject, activity and features files and writes to a tidy csv output
-	readData <- function (subjectFile, activityFile, featuresFile){
+	readLineByLine <- function (subjectFile, activityFile, featuresFile){
 
 		conSubject <- file(subjectFile, open = "r")
 		conActivity <- file(activityFile, open = "r")
@@ -61,10 +61,20 @@ if (!file.exists(testDir) || !file.exists(trainDir)){
 	}
 
 	# reads from the test set and writes to the tidy csv output
-	readData("test/subject_test.txt", "test/y_test.txt", "test/X_test.txt")
+	readLineByLine("test/subject_test.txt", "test/y_test.txt", "test/X_test.txt")
 
 	# reads from the train set and writes to the tidy csv output
-	readData("train/subject_train.txt", "train/y_train.txt", "train/X_train.txt")
+	readLineByLine("train/subject_train.txt", "train/y_train.txt", "train/X_train.txt")
+
+	# generates the second tidy dataset with the means by subject+activity
+	data <- read.csv("output.csv")
+	dataAverage <- aggregate(. ~ data$activity + data$subjectId, data=data, mean)
+	dataAverage$activity <- NULL
+	dataAverage$subjectId <- NULL
+	names(dataAverage)[1] <- "activity"
+	names(dataAverage)[2] <- "subjectId"
+
+	write.table(dataAverage, "output_averages.csv", sep = ",", row.names = FALSE)
 }
 
 
